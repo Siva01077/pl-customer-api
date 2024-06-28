@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c27bbf11-987d-4293-8023-1be153ff1b04" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="f691b21f-a21c-455f-a19f-22357f850602" >
+		<http:request-connection host="systemapicustomer.us-e2.cloudhub.io"/>
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="9ff9394c-6797-417e-8121-860e4a0a087e" >
+		<http:request-connection host="systemapi2.us-e2.cloudhub.io" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="47c1c555-701d-4df3-8f76-e4adf7914bc5" >
+		<http:request-connection host="systemapicustomer.us-e2.cloudhub.io" />
+	</http:request-config>
+	<flow name="pl-customer-apiFlow" doc:id="3db54848-541c-41c0-9590-5fb2efafdb83" >
+		<http:listener doc:name="Listener" doc:id="db647b1a-9742-47e1-ad89-c5ce2cd87157" config-ref="HTTP_Listener_config" path="/getcustomers"/>
+		<logger level="INFO" doc:name="Logger" doc:id="e82c0b24-d479-40a0-acec-d9f118f55365" message='#["pl is called"]'/>
+		<choice doc:name="Choice" doc:id="bc6e0717-0a66-402e-ae1a-5db4dff2e177" >
+			<when expression='#[attributes.queryParams.SelectSystem == "system1"]'>
+				<http:request method="GET" doc:name="Request" doc:id="0fad492b-6d3f-4623-85a9-25909ece485b" config-ref="HTTP_Request_configuration1" path="/getcustomers" />
+			</when>
+			<when expression='#[attributes.queryParams.SelectSystem == "system2"]'>
+				<http:request method="GET" doc:name="Request" doc:id="7d002099-aa01-4a57-bd0f-1ed60c791605" config-ref="HTTP_Request_configuration2" path="/getcustomers" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="123d0780-b86e-4ddb-8de6-8a111e636597" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="6bd1d55c-fdc5-4db8-8338-75df1bbf4e8e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b2facef9-c1c5-4c54-a782-2e2e22cacbfd" message='#["pl is called from 2 systems"]'/>
+	</flow>
+</mule>
